@@ -10,12 +10,12 @@ const { errors } = require('celebrate');
 const { requestLogger, errorLogger } = require('./middlewares/logger');
 const { generalProcessor, notFoundProcessor } = require('./middlewares/errProcessor');
 const URL_LIST = require('./utils/urls');
-const routes = require('./routes');
+const routes = require('./routes/index');
 
 const { PORT = 3000 } = process.env;
 const app = express();
 
-mongoose.connect('mongodb://localhost:27017/mestodb');
+mongoose.connect('mongodb://localhost:27017/moviesdb');
 
 app.use(cors({ origin: URL_LIST }));
 app.use(helmet());

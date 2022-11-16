@@ -9,9 +9,9 @@ const { notFoundProcessor } = require('../middlewares/errProcessor');
 
 router.post('/signup', validationUser, createUser);
 router.post('/signin', validationAuth, login);
+router.use(auth);
 router.use('/movies', movieRouter);
 router.use('/users', userRouter);
-router.use(auth);
 router.use(notFoundProcessor);
 
 module.exports = router;

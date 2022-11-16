@@ -6,7 +6,7 @@ const BadRequestError = require('../errors/BadRequestError');
 const AuthError = require('../errors/AuthError');
 const NotFoundError = require('../errors/NotFoundError');
 const ConflictingError = require('../errors/ConflictingError');
-const { CREATED } = require('../utils/constants');
+const { CREATED } = require('../utils/errCodes');
 
 const getUser = (req, res, next) => {
   const id = req.user._id;

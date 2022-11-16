@@ -11,11 +11,11 @@ const movieSchema = new mongoose.Schema({
     required: true,
   },
   duration: {
-    type: Number,
+    type: String,
     required: true,
   },
   year: {
-    type: Date,
+    type: Number,
     required: true,
   },
   description: {
@@ -52,7 +52,7 @@ const movieSchema = new mongoose.Schema({
     required: true,
   },
   movieId: {
-    type: Number,
+    type: String,
     required: true,
   },
   nameRU: {
