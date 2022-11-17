@@ -2,6 +2,7 @@ const { Joi, celebrate } = require('celebrate');
 const { ObjectId } = require('mongoose').Types;
 
 const regExp = require('../utils/regExp');
+const { Message } = require('../utils/constants');
 
 const validationAuth = celebrate({
   body: Joi.object().keys({
@@ -16,7 +17,7 @@ const validationId = celebrate({
       if (ObjectId.isValid(value)) {
         return value;
       }
-      return helpers.message('Некорректный id');
+      return helpers.message(Message.VALIDATION_ERR);
     }),
   }),
 });
@@ -46,7 +47,7 @@ const validationMovie = celebrate({
     image: Joi.string().required().pattern(regExp),
     trailerLink: Joi.string().required().pattern(regExp),
     thumbnail: Joi.string().required().pattern(regExp),
-    movieId: Joi.string().required(),
+    movieId: Joi.number().required(),
     nameRU: Joi.string().required(),
     nameEN: Joi.string().required(),
   }),

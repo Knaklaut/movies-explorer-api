@@ -8,26 +8,30 @@ const helmet = require('helmet');
 const { errors } = require('celebrate');
 
 const { requestLogger, errorLogger } = require('./middlewares/logger');
-const { generalProcessor, notFoundProcessor } = require('./middlewares/errProcessor');
-const URL_LIST = require('./utils/urls');
-const routes = require('./routes/index');
+const { generalProcessor, badReqProcessor, notFoundProcessor } = require('./middlewares/errProcessor');
+const { Message } = require('./utils/constants');
+const { urlList, port, mongoUrl } = require('./utils/config');
+const routes = require('./routes');
+const limiter = require('./middlewares/limiter');
 
-const { PORT = 3000 } = process.env;
+const { PORT = port, MONGO_URL = mongoUrl, URL_LIST = urlList } = process.env;
 const app = express();
 
-mongoose.connect('mongodb://localhost:27017/moviesdb');
+mongoose.connect(MONGO_URL, { useNewUrlParser: true });
 
 app.use(cors({ origin: URL_LIST }));
 app.use(helmet());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(requestLogger);
+app.use(limiter);
 app.get('/crash-test', () => {
   setTimeout(() => {
-    throw new Error('Сервер сейчас упадёт');
+    throw new Error(Message.CRASH_TEST);
   }, 0);
 });
 app.use(routes);
+app.use(badReqProcessor);
 app.use(notFoundProcessor);
 app.use(errorLogger);
 app.use(errors());

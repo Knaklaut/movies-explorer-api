@@ -6,12 +6,12 @@ const BadRequestError = require('../errors/BadRequestError');
 const AuthError = require('../errors/AuthError');
 const NotFoundError = require('../errors/NotFoundError');
 const ConflictingError = require('../errors/ConflictingError');
-const { CREATED } = require('../utils/errCodes');
+const { ServerRes, Message } = require('../utils/constants');
 
 const getUser = (req, res, next) => {
   const id = req.user._id;
   User.findById(id)
-    .orFail(() => new NotFoundError('Такого пользователя не существует.'))
+    .orFail(() => new NotFoundError(Message.USER_NOT_FOUND))
     .then((user) => res.send(user))
     .catch(next);
 };
@@ -27,13 +27,13 @@ const updateUserData = (req, res, next) => {
       runValidators: true,
     },
   )
-    .orFail(() => new NotFoundError('Такого пользователя не существует.'))
+    .orFail(() => new NotFoundError(Message.USER_NOT_FOUND))
     .then((user) => res.send(user))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(new BadRequestError('Передан некорректный идентификатор пользователя.'));
+        next(new BadRequestError(Message.BAD_REQUEST));
       } else if (err.code === 11000) {
-        next(new ConflictingError('Пользователь с таким email уже существует.'));
+        next(new ConflictingError(Message.CONFLICTING));
       } else {
         next(err);
       }
@@ -48,16 +48,16 @@ const createUser = (req, res, next) => {
     .then((hash) => User.create({
       name, email, password: hash,
     }))
-    .then((user) => res.status(CREATED).send({
+    .then((user) => res.status(ServerRes.CREATED).send({
       _id: user._id,
       name: user.name,
       email: user.email,
     }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(new BadRequestError('Переданы некорректные данные при создании пользователя.'));
+        next(new BadRequestError(Message.BAD_REQUEST));
       } else if (err.code === 11000) {
-        next(new ConflictingError('Пользователь с таким email уже существует.'));
+        next(new ConflictingError(Message.CONFLICTING));
       } else {
         next(err);
       }
@@ -69,7 +69,7 @@ const login = (req, res, next) => {
   User.findOne({ email }).select('+password')
     .then((user) => {
       if (!user) {
-        throw new AuthError('Пользователь не существует.');
+        throw new AuthError(Message.USER_NOT_FOUND);
       }
       return Promise.all([
         user,
@@ -78,7 +78,7 @@ const login = (req, res, next) => {
     })
     .then(([user, isPasswordCorrect]) => {
       if (!isPasswordCorrect) {
-        throw new AuthError('Неправильный email или пароль.');
+        throw new AuthError(Message.UNAUTHORIZED);
       }
       return generateToken({ _id: user._id }, '7d');
     })

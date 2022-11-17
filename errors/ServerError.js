@@ -1,9 +1,9 @@
-const { SERVER_ERR } = require('../utils/constants');
+const { ServerRes } = require('../utils/constants');
 
 class ServerError extends Error {
   constructor(message) {
     super(message);
-    this.statusCode = SERVER_ERR;
+    this.statusCode = ServerRes.SERVER_ERR;
   }
 }
 
