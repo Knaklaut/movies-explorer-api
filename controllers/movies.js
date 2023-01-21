@@ -5,7 +5,7 @@ const NotFoundError = require('../errors/NotFoundError');
 const { ServerRes, Message } = require('../utils/constants');
 
 const createMovie = (req, res, next) => {
-  const owner = req.user._id;
+  const { _id } = req.user;
   const {
     country,
     director,
@@ -28,41 +28,47 @@ const createMovie = (req, res, next) => {
     image,
     trailerLink,
     thumbnail,
-    owner,
+    owner: _id,
     movieId,
     nameRU,
     nameEN,
   })
     .then((movie) => res.status(ServerRes.CREATED).send(movie))
     .catch((err) => {
-      if (err.name === 'ValidationError') {
+      if (err.name === 'ValidationError' || err.name === 'CastError') {
         next(new BadRequestError(Message.BAD_REQUEST));
-      } else {
-        next(err);
+        return;
       }
+      next(err);
     });
 };
 
 const getMovies = (req, res, next) => {
-  const userId = req.user._id;
-  Movie.find({ owner: userId })
-    .then((movies) => res.send(movies))
+  const { _id } = req.user;
+  Movie.find({ owner: _id })
+    .then((movies) => res.status(ServerRes.OK).send(movies))
     .catch(next);
 };
 
 const deleteMovie = (req, res, next) => {
-  const userId = req.user._id;
-  const { id } = req.params;
-  Movie.findById(id)
-    .orFail(() => new NotFoundError(Message.MOVIE_NOT_FOUND))
+  Movie.findById(req.params.movieId)
+    .orFail(new NotFoundError(Message.MOVIE_NOT_FOUND))
     .then((movie) => {
-      if (!movie.owner.equals(userId)) {
-        return next(new ForbiddenError(Message.FORBIDDEN));
+      if (req.user._id !== movie.owner._id.toString()) {
+        throw new ForbiddenError(Message.MOVIE_FORBIDDEN);
       }
-      return Movie.deleteOne(movie)
-        .then(() => res.send(movie));
+      return Movie.findByIdAndRemove(req.params.movieId);
     })
-    .catch(next);
+    .then((movie) => {
+      res.status(ServerRes.OK).send(movie);
+    })
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        next(new BadRequestError(Message.BAD_REQUEST));
+        return;
+      }
+      next(err);
+    });
 };
 
 module.exports = {

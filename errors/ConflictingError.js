@@ -1,9 +1,7 @@
-const { ServerRes } = require('../utils/constants');
-
 class ConflictingError extends Error {
   constructor(message) {
     super(message);
-    this.statusCode = ServerRes.CONFLICTING_REQ;
+    this.statusCode = 409;
   }
 }
 
